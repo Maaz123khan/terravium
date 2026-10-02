@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Replace with your real domain after registration
+Sitemap: https://terravium.site/sitemap.xml
+
+# Private tools
+Disallow: /read.html
