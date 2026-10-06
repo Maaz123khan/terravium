@@ -1,0 +1,43 @@
+name: Daily live-news refresh
+
+# Refreshes the site's baked-in world news + snapshot every day, automatically.
+# Uses only free GitHub Actions minutes — no servers, no API keys.
+
+on:
+  schedule:
+    - cron: "17 1 * * *"   # every day at 01:17 UTC
+  workflow_dispatch: {}     # also allows a manual run from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-refresh
+  cancel-in-progress: true
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Refresh live news (snapshot + baked headlines)
+        run: python tools/refresh_live.py
+
+      - name: Commit & push if anything changed
+        run: |
+          git config user.name  "Terravium Bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes today — nothing to commit."
+          else
+            git commit -m "chore: daily live-news refresh [skip ci]"
+            git push
+          fi
